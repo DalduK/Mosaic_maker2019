@@ -5,13 +5,14 @@ import re
 import urllib
 import numpy as np
 import cv2
+import os
 
 app = Flask(__name__)
 
 
 @app.route('/mozaic')
 def get():
-    losowo = request.args.get('losowo',type=bool)
+    losowo = request.args.get('losowo',type=int)
     rozdzielczosc = request.args.get('rozdzielczosc',default="2048x2048",type=str)
     zdjecie = request.args.get('zdjecie',type=str)
     if re.search("\d+"+"x"+"\d+",rozdzielczosc):
@@ -22,50 +23,32 @@ def get():
     s1 = int(r[0])
     s2 = int(r[1])
     g = zdjecie.split(",")
+    zdjecia = []
+    zdjecia2 = []
     if losowo == 1:
         shuffle(g)
     h = len(g)
-    if h == 1:
+    for i in range(h):
         req = urllib.request.urlopen(
-            g[0])
+            g[i])
         arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
         img = cv2.imdecode(arr, -1)
-        res = cv2.resize(img, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", res)
+        zdjecia.append(img)
+    cols = zdjecia[0].shape[0]
+    rows = zdjecia[0].shape[1]
+    border_h = 0
+    border_v = 0
+    for i in range(h):
+        img = cv2.resize(zdjecia[i],(rows,cols))
+        zdjecia2.append(img)
+    if h == 1:
+        colf2 = cv2.resize(zdjecia[0], (s1, s2))
     elif h == 2:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        colf = np.hstack([img, imgr2])
+        colf = np.hstack([zdjecia[0], zdjecia2[1]])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 3:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        col1 = np.vstack([img])
-        col2 = np.vstack([imgr3, imgr2])
-        border_h = 0
-        border_v = 0
+        col1 = np.vstack([zdjecia[0]])
+        col2 = np.vstack([zdjecia2[1], zdjecia2[2]])
         if (col2.shape[0] / col2.shape[1]) >= (col1.shape[0] / col1.shape[1]):
             border_v = int((((col2.shape[0] / col2.shape[1]) * col1.shape[1]) - col1.shape[0]) / 2)
         else:
@@ -74,61 +57,14 @@ def get():
         col1 = cv2.resize(img, (col2.shape[1], col2.shape[0]))
         colf = np.hstack([col1, col2])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 4:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        req4 = urllib.request.urlopen(g[3])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        arr4 = np.asarray(bytearray(req4.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        img4 = cv2.imdecode(arr4, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        imgr4 = cv2.resize(img4, (rows, cols))
-        col1 = np.vstack([img, imgr2])
-        col2 = np.vstack([imgr3, imgr4])
+        col1 = np.vstack([zdjecia[0], zdjecia2[1]])
+        col2 = np.vstack([zdjecia2[2], zdjecia2[3]])
         colf = np.hstack([col1, col2])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 5:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        req4 = urllib.request.urlopen(g[3])
-        req5 = urllib.request.urlopen(g[4])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        arr4 = np.asarray(bytearray(req4.read()), dtype=np.uint8)
-        arr5 = np.asarray(bytearray(req5.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        img4 = cv2.imdecode(arr4, -1)
-        img5 = cv2.imdecode(arr5, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        imgr4 = cv2.resize(img4, (rows, cols))
-        imgr5 = cv2.resize(img5, (rows, cols))
-
-        col1 = np.vstack([img, imgr2])
-        col2 = np.vstack([imgr3, imgr4, imgr5])
-        border_h = 0
-        border_v = 0
+        col1 = np.vstack([zdjecia[0], zdjecia2[1]])
+        col2 = np.vstack([zdjecia2[2], zdjecia2[3], zdjecia2[4]])
         if (col2.shape[0] / col2.shape[1]) >= (col1.shape[0] / col1.shape[1]):
             border_v = int((((col2.shape[0] / col2.shape[1]) * col1.shape[1]) - col1.shape[0]) / 2)
         else:
@@ -137,79 +73,14 @@ def get():
         col1 = cv2.resize(img, (col2.shape[1], col2.shape[0]))
         colf = np.hstack([col1, col2])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 6:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        req4 = urllib.request.urlopen(g[3])
-        req5 = urllib.request.urlopen(g[4])
-        req6 = urllib.request.urlopen(
-            g[5])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        arr4 = np.asarray(bytearray(req4.read()), dtype=np.uint8)
-        arr5 = np.asarray(bytearray(req5.read()), dtype=np.uint8)
-        arr6 = np.asarray(bytearray(req6.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        img4 = cv2.imdecode(arr4, -1)
-        img5 = cv2.imdecode(arr5, -1)
-        img6 = cv2.imdecode(arr6, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        imgr4 = cv2.resize(img4, (rows, cols))
-        imgr5 = cv2.resize(img5, (rows, cols))
-        imgr6 = cv2.resize(img6, (rows, cols))
-        col1 = np.vstack([img, imgr2, imgr5])
-        col2 = np.vstack([imgr3, imgr4, imgr6])
+        col1 = np.vstack([zdjecia[0], zdjecia2[1], zdjecia2[2]])
+        col2 = np.vstack([zdjecia2[3], zdjecia2[4], zdjecia2[5]])
         colf = np.hstack([col1, col2])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 7:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        req4 = urllib.request.urlopen(g[3])
-        req5 = urllib.request.urlopen(g[4])
-        req6 = urllib.request.urlopen(
-            g[5])
-        req7 = urllib.request.urlopen(
-            g[6])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        arr4 = np.asarray(bytearray(req4.read()), dtype=np.uint8)
-        arr5 = np.asarray(bytearray(req5.read()), dtype=np.uint8)
-        arr6 = np.asarray(bytearray(req6.read()), dtype=np.uint8)
-        arr7 = np.asarray(bytearray(req7.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        img4 = cv2.imdecode(arr4, -1)
-        img5 = cv2.imdecode(arr5, -1)
-        img6 = cv2.imdecode(arr6, -1)
-        img7 = cv2.imdecode(arr7, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        imgr4 = cv2.resize(img4, (rows, cols))
-        imgr5 = cv2.resize(img5, (rows, cols))
-        imgr6 = cv2.resize(img6, (rows, cols))
-        imgr7 = cv2.resize(img7, (rows, cols))
-        col1 = np.vstack([img, imgr2, imgr5])
-        col2 = np.vstack([imgr3, imgr4, imgr7, imgr6])
-        border_h = 0
-        border_v = 0
+        col1 = np.vstack([zdjecia[0], zdjecia2[1], zdjecia2[2]])
+        col2 = np.vstack([zdjecia2[3], zdjecia2[4], zdjecia2[5],zdjecia2[6]])
         if (col2.shape[0] / col2.shape[1]) >= (col1.shape[0] / col1.shape[1]):
             border_v = int((((col2.shape[0] / col2.shape[1]) * col1.shape[1]) - col1.shape[0]) / 2)
         else:
@@ -218,50 +89,10 @@ def get():
         col1 = cv2.resize(img, (col2.shape[1], col2.shape[0]))
         colf = np.hstack([col1, col2])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     elif h == 8:
-        req = urllib.request.urlopen(g[0])
-        req2 = urllib.request.urlopen(
-            g[1])
-        req3 = urllib.request.urlopen(
-            g[2])
-        req4 = urllib.request.urlopen(g[3])
-        req5 = urllib.request.urlopen(g[4])
-        req6 = urllib.request.urlopen(
-            g[5])
-        req7 = urllib.request.urlopen(
-            g[6])
-        req8 = urllib.request.urlopen(g[7])
-        arr = np.asarray(bytearray(req.read()), dtype=np.uint8)
-        arr2 = np.asarray(bytearray(req2.read()), dtype=np.uint8)
-        arr3 = np.asarray(bytearray(req3.read()), dtype=np.uint8)
-        arr4 = np.asarray(bytearray(req4.read()), dtype=np.uint8)
-        arr5 = np.asarray(bytearray(req5.read()), dtype=np.uint8)
-        arr6 = np.asarray(bytearray(req6.read()), dtype=np.uint8)
-        arr7 = np.asarray(bytearray(req7.read()), dtype=np.uint8)
-        arr8 = np.asarray(bytearray(req8.read()), dtype=np.uint8)
-        img = cv2.imdecode(arr, -1)
-        img2 = cv2.imdecode(arr2, -1)
-        img3 = cv2.imdecode(arr3, -1)
-        img4 = cv2.imdecode(arr4, -1)
-        img5 = cv2.imdecode(arr5, -1)
-        img6 = cv2.imdecode(arr6, -1)
-        img7 = cv2.imdecode(arr7, -1)
-        img8 = cv2.imdecode(arr8, -1)
-        cols = img.shape[0]
-        rows = img.shape[1]
-        imgr2 = cv2.resize(img2, (rows, cols))
-        imgr3 = cv2.resize(img3, (rows, cols))
-        imgr4 = cv2.resize(img4, (rows, cols))
-        imgr5 = cv2.resize(img5, (rows, cols))
-        imgr6 = cv2.resize(img6, (rows, cols))
-        imgr7 = cv2.resize(img7, (rows, cols))
-        imgr8 = cv2.resize(img8, (rows, cols))
-        col1 = np.vstack([img, imgr2, imgr5])
-        col2 = np.vstack([imgr3, imgr4, imgr7])
-        col3 = np.vstack([imgr6, imgr8])
-        border_h = 0
-        border_v = 0
+        col1 = np.vstack([zdjecia[0], zdjecia2[1], zdjecia2[2]])
+        col2 = np.vstack([zdjecia2[3], zdjecia2[4], zdjecia2[5]])
+        col3 = np.vstack([zdjecia2[6], zdjecia2[7]])
         if (col2.shape[0] / col2.shape[1]) >= (col3.shape[0] / col3.shape[1]):
             border_v = int((((col2.shape[0] / col2.shape[1]) * col3.shape[1]) - col3.shape[0]) / 2)
         else:
@@ -270,10 +101,10 @@ def get():
         col3 = cv2.resize(img, (col2.shape[1], col2.shape[0]))
         colf = np.hstack([col1, col2, col3])
         colf2 = cv2.resize(colf, (s1, s2))
-        cv2.imwrite("zdjeciekota.jpg", colf2)
     else:
         return "Zbyt wiele argumentow Zdjecie"
-    return send_file("zdjeciekota.jpg", mimetype='image/jpg')
+    cv2.imwrite("zdjecie.jpg", colf2)
+    return send_file("zdjecie.jpg", mimetype='image/jpg')
 
 if __name__ == '__main__':
     app.run()
