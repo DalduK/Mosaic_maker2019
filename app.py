@@ -10,7 +10,7 @@ import os
 app = Flask(__name__)
 
 
-@app.route('/mozaic')
+@app.route('/mozaika')
 def get():
     losowo = request.args.get('losowo',type=int)
     rozdzielczosc = request.args.get('rozdzielczosc',default="2048x2048",type=str)
